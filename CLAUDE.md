@@ -71,6 +71,27 @@ Routes are defined as Express Router modules and mounted in `app.js`:
 - **PORT**: Server port (default: 3000)
 - **NODE_ENV**: Set to 'development' for detailed error pages
 
+## API Documentation
+
+### Postman Collection
+
+**IMPORTANT**: Whenever you make major changes to the API (new routes, modified endpoints, changed request/response structures), you MUST create or update a Postman collection file.
+
+Major changes include:
+- Adding new routes or endpoints
+- Modifying existing endpoint methods (GET, POST, PUT, DELETE, etc.)
+- Changing request body schemas
+- Updating response formats
+- Adding or modifying authentication/authorization
+- Creating new route files
+
+The Postman collection should:
+- Be saved as `postman_collection.json` in the project root
+- Include all API endpoints with example requests
+- Document request bodies, headers, and query parameters
+- Include example responses
+- Be organized by route modules (users, products, etc.)
+
 ## Notes for Future Development
 
 - The server listens on all network interfaces (0.0.0.0)
