@@ -591,6 +591,320 @@
 			"description": "Admin-only endpoints for user management and dashboard statistics. NOTE: Admin routes are defined in routes/admin.js but not currently mounted in app.js. To enable these routes, add the following to app.js:\n\nvar adminRouter = require('./routes/admin');\napp.use('/api/admin', adminRouter);"
 		},
 		{
+			"name": "Staff Management",
+			"item": [
+				{
+					"name": "Create Staff Member",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe\",\n  \"phoneNumber\": \"+1234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/staff",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"staff"
+							]
+						},
+						"description": "Create a new staff member. Requires OWNER role. Phone number must be unique."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Doe\",\n    \"phoneNumber\": \"+1234567890\",\n    \"createdAt\": \"2025-12-19T00:00:00.000Z\"\n  }\n}"
+						},
+						{
+							"name": "Duplicate Phone Number",
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": \"Phone number already registered\"\n}"
+						},
+						{
+							"name": "Validation Error",
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"errors\": [\n    {\n      \"msg\": \"Name must be between 2 and 100 characters\",\n      \"param\": \"name\"\n    },\n    {\n      \"msg\": \"Please provide a valid phone number\",\n      \"param\": \"phoneNumber\"\n    }\n  ]\n}"
+						},
+						{
+							"name": "Unauthorized - Not OWNER",
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": \"User type 'RECEPTIONIST' is not authorized to access this route\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Get All Staff Members",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/staff",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"staff"
+							]
+						},
+						"description": "Get all staff members. Requires OWNER role."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"count\": 2,\n  \"data\": [\n    {\n      \"_id\": \"507f1f77bcf86cd799439011\",\n      \"name\": \"John Doe\",\n      \"phoneNumber\": \"+1234567890\",\n      \"createdAt\": \"2025-12-19T00:00:00.000Z\"\n    },\n    {\n      \"_id\": \"507f1f77bcf86cd799439012\",\n      \"name\": \"Jane Smith\",\n      \"phoneNumber\": \"+0987654321\",\n      \"createdAt\": \"2025-12-18T00:00:00.000Z\"\n    }\n  ]\n}"
+						},
+						{
+							"name": "Empty List",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"count\": 0,\n  \"data\": []\n}"
+						}
+					]
+				},
+				{
+					"name": "Update Staff Member",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Updated\",\n  \"phoneNumber\": \"+1234567899\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/staff/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"staff",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "507f1f77bcf86cd799439011",
+									"description": "Staff member ID"
+								}
+							]
+						},
+						"description": "Update a staff member by ID. Requires OWNER role. Can update name and/or phone number."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Updated\",\n    \"phoneNumber\": \"+1234567899\",\n    \"createdAt\": \"2025-12-19T00:00:00.000Z\"\n  }\n}"
+						},
+						{
+							"name": "Staff Not Found",
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": \"Staff member not found\"\n}"
+						},
+						{
+							"name": "Invalid ID Format",
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"errors\": [\n    {\n      \"msg\": \"Invalid staff member ID\",\n      \"param\": \"id\"\n    }\n  ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Delete Staff Member",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/staff/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"staff",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "507f1f77bcf86cd799439011",
+									"description": "Staff member ID"
+								}
+							]
+						},
+						"description": "Delete a staff member by ID. Requires OWNER role."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"data\": {},\n  \"message\": \"Staff member deleted successfully\"\n}"
+						},
+						{
+							"name": "Staff Not Found",
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": \"Staff member not found\"\n}"
+						}
+					]
+				}
+			],
+			"description": "Staff member management endpoints. All routes require OWNER authorization."
+		},
+		{
 			"name": "Users",
 			"item": [
 				{
