@@ -11,6 +11,10 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var authRouter = require('./routes/auth');
 var staffRouter = require('./routes/staff');
+var dashboardRouter = require('./routes/dashboard');
+var appointmentsRouter = require('./routes/appointments');
+var customersRouter = require('./routes/customers');
+var servicesRouter = require('./routes/services');
 
 var app = express();
 
@@ -35,6 +39,10 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/staff', staffRouter);
+app.use('/api/dashboard', dashboardRouter);
+app.use('/api/appointments', appointmentsRouter);
+app.use('/api/customers', customersRouter);
+app.use('/api/services', servicesRouter);
 
 // Import custom error handler
 const errorHandler = require('./middleware/errorHandler');

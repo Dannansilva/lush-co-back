@@ -9,15 +9,20 @@ const {
 } = require('../controllers/staffController');
 const { protect, authorize } = require('../middleware/auth');
 
-// All routes require authentication and OWNER authorization
+// All routes require authentication
 router.use(protect);
-router.use(authorize('OWNER'));
+
+// @route   GET /api/staff
+// @desc    Get all staff members
+// @access  Private (OWNER and RECEPTIONIST)
+router.get('/', authorize('OWNER', 'RECEPTIONIST'), getAllStaff);
 
 // @route   POST /api/staff
 // @desc    Create new staff member
 // @access  Private (OWNER only)
 router.post(
   '/',
+  authorize('OWNER'),
   [
     body('name')
       .trim()
@@ -37,16 +42,12 @@ router.post(
   createStaff
 );
 
-// @route   GET /api/staff
-// @desc    Get all staff members
-// @access  Private (OWNER only)
-router.get('/', getAllStaff);
-
 // @route   PUT /api/staff/:id
 // @desc    Update staff member
 // @access  Private (OWNER only)
 router.put(
   '/:id',
+  authorize('OWNER'),
   [
     param('id')
       .isMongoId()
@@ -72,6 +73,7 @@ router.put(
 // @access  Private (OWNER only)
 router.delete(
   '/:id',
+  authorize('OWNER'),
   [
     param('id')
       .isMongoId()

@@ -15,6 +15,16 @@
 			"key": "token",
 			"value": "",
 			"type": "string"
+		},
+		{
+			"key": "ownerToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "receptionistToken",
+			"value": "",
+			"type": "string"
 		}
 	],
 	"item": [
@@ -178,6 +188,94 @@
 							"body": "{\n  \"success\": false,\n  \"errors\": [\n    {\n      \"msg\": \"Please provide a valid email\",\n      \"param\": \"email\"\n    },\n    {\n      \"msg\": \"Password is required\",\n      \"param\": \"password\"\n    }\n  ]\n}"
 						}
 					]
+				},
+				{
+					"name": "Login as OWNER",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"ownerToken\", jsonData.token);",
+									"    pm.collectionVariables.set(\"token\", jsonData.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"ownerlushco@gmail.com\",\n  \"password\": \"OwnerLush123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login as OWNER user with full access. Token is automatically saved to ownerToken variable."
+					},
+					"response": []
+				},
+				{
+					"name": "Login as RECEPTIONIST",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"receptionistToken\", jsonData.token);",
+									"    pm.collectionVariables.set(\"token\", jsonData.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"frontdesk@gmail.com\",\n  \"password\": \"frontdesk123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login as RECEPTIONIST user with limited access. Token is automatically saved to receptionistToken variable."
+					},
+					"response": []
 				},
 				{
 					"name": "Get Current User",
@@ -713,7 +811,7 @@
 								"staff"
 							]
 						},
-						"description": "Get all staff members. Requires OWNER role."
+						"description": "Get all staff members. Accessible by both OWNER and RECEPTIONIST roles."
 					},
 					"response": [
 						{
@@ -900,9 +998,91 @@
 							"body": "{\n  \"success\": false,\n  \"error\": \"Staff member not found\"\n}"
 						}
 					]
+				},
+				{
+					"name": "Get All Staff (as RECEPTIONIST)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{receptionistToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/staff",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"staff"
+							]
+						},
+						"description": "RECEPTIONIST can view all staff members (read-only access)."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Staff (RECEPTIONIST - Should Fail)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{receptionistToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Staff\",\n  \"phoneNumber\": \"+1234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/staff",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"staff"
+							]
+						},
+						"description": "This request demonstrates that RECEPTIONIST cannot create staff. Expected response: 403 Forbidden."
+					},
+					"response": [
+						{
+							"name": "Forbidden Response",
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": \"User type 'RECEPTIONIST' is not authorized to access this route\"\n}"
+						}
+					]
 				}
 			],
-			"description": "Staff member management endpoints. All routes require OWNER authorization."
+			"description": "Staff member management endpoints.\n\nAccess Control:\n- GET /api/staff - Both OWNER and RECEPTIONIST ✅\n- POST /api/staff - OWNER only ✅\n- PUT /api/staff/:id - OWNER only ✅\n- DELETE /api/staff/:id - OWNER only ✅"
 		},
 		{
 			"name": "Users",
