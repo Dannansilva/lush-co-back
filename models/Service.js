@@ -67,15 +67,13 @@ const ServiceSchema = new mongoose.Schema({
 });
 
 // Update the updatedAt timestamp before saving
-ServiceSchema.pre('save', function(next) {
+ServiceSchema.pre('save', function() {
   this.updatedAt = Date.now();
-  next();
 });
 
 // Update the updatedAt timestamp before updating
-ServiceSchema.pre('findOneAndUpdate', function(next) {
+ServiceSchema.pre('findOneAndUpdate', function() {
   this.set({ updatedAt: Date.now() });
-  next();
 });
 
 module.exports = mongoose.model('Service', ServiceSchema);
