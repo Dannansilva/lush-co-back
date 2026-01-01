@@ -908,6 +908,41 @@
 			"name": "Services",
 			"item": [
 				{
+					"name": "Get Service Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/services/categories",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"services",
+								"categories"
+							]
+						},
+						"description": "Get all available service categories with their labels and icons. Public access. Use this endpoint to populate category dropdowns in your frontend."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"count\": 10,\n  \"data\": [\n    {\n      \"value\": \"HAIR_STYLING\",\n      \"label\": \"Hair Styling\",\n      \"icon\": \"✂️\"\n    },\n    {\n      \"value\": \"HAIR_COLORING\",\n      \"label\": \"Hair Coloring\",\n      \"icon\": \"🎨\"\n    },\n    {\n      \"value\": \"FACIAL\",\n      \"label\": \"Facial\",\n      \"icon\": \"🧖\"\n    },\n    {\n      \"value\": \"MASSAGE\",\n      \"label\": \"Massage\",\n      \"icon\": \"💆\"\n    },\n    {\n      \"value\": \"BODY_TREATMENT\",\n      \"label\": \"Body Treatment\",\n      \"icon\": \"🧴\"\n    },\n    {\n      \"value\": \"NAIL_CARE\",\n      \"label\": \"Nail Care\",\n      \"icon\": \"💅\"\n    },\n    {\n      \"value\": \"HAIR_REMOVAL\",\n      \"label\": \"Hair Removal\",\n      \"icon\": \"🪒\"\n    },\n    {\n      \"value\": \"MAKEUP\",\n      \"label\": \"Makeup\",\n      \"icon\": \"💄\"\n    },\n    {\n      \"value\": \"SKINCARE\",\n      \"label\": \"Skincare\",\n      \"icon\": \"🧴\"\n    },\n    {\n      \"value\": \"OTHER\",\n      \"label\": \"Other\",\n      \"icon\": \"✨\"\n    }\n  ]\n}"
+						}
+					]
+				},
+				{
 					"name": "Get All Services",
 					"request": {
 						"method": "GET",

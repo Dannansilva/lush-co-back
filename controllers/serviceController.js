@@ -158,6 +158,34 @@ exports.deleteService = async (req, res, next) => {
   }
 };
 
+// @desc    Get all service categories
+// @route   GET /api/services/categories
+// @access  Public
+exports.getCategories = async (req, res, next) => {
+  try {
+    const categories = [
+      { value: 'HAIR_STYLING', label: 'Hair Styling', icon: '✂️' },
+      { value: 'HAIR_COLORING', label: 'Hair Coloring', icon: '🎨' },
+      { value: 'FACIAL', label: 'Facial', icon: '🧖' },
+      { value: 'MASSAGE', label: 'Massage', icon: '💆' },
+      { value: 'BODY_TREATMENT', label: 'Body Treatment', icon: '🧴' },
+      { value: 'NAIL_CARE', label: 'Nail Care', icon: '💅' },
+      { value: 'HAIR_REMOVAL', label: 'Hair Removal', icon: '🪒' },
+      { value: 'MAKEUP', label: 'Makeup', icon: '💄' },
+      { value: 'SKINCARE', label: 'Skincare', icon: '🧴' },
+      { value: 'OTHER', label: 'Other', icon: '✨' }
+    ];
+
+    res.status(200).json({
+      success: true,
+      count: categories.length,
+      data: categories
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Get services by category
 // @route   GET /api/services/category/:category
 // @access  Public or Private

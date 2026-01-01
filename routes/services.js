@@ -7,9 +7,15 @@ const {
   createService,
   updateService,
   deleteService,
-  getServicesByCategory
+  getServicesByCategory,
+  getCategories
 } = require('../controllers/serviceController');
 const { protect, authorize } = require('../middleware/auth');
+
+// @route   GET /api/services/categories
+// @desc    Get all service categories
+// @access  Public
+router.get('/categories', getCategories);
 
 // @route   GET /api/services/category/:category
 // @desc    Get services by category
