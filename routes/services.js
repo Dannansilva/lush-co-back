@@ -49,7 +49,7 @@ router.post(
       .trim()
       .notEmpty()
       .withMessage('Category is required')
-      .isIn(['FACIAL', 'MASSAGE', 'BODY_TREATMENT', 'NAIL_CARE', 'HAIR_REMOVAL', 'OTHER'])
+      .isIn(['HAIR_STYLING', 'HAIR_COLORING', 'FACIAL', 'MASSAGE', 'BODY_TREATMENT', 'NAIL_CARE', 'HAIR_REMOVAL', 'MAKEUP', 'SKINCARE', 'OTHER'])
       .withMessage('Invalid category'),
     body('duration')
       .notEmpty()
@@ -81,7 +81,7 @@ router.put(
       .withMessage('Name must be between 2 and 100 characters'),
     body('category')
       .optional()
-      .isIn(['FACIAL', 'MASSAGE', 'BODY_TREATMENT', 'NAIL_CARE', 'HAIR_REMOVAL', 'OTHER'])
+      .isIn(['HAIR_STYLING', 'HAIR_COLORING', 'FACIAL', 'MASSAGE', 'BODY_TREATMENT', 'NAIL_CARE', 'HAIR_REMOVAL', 'MAKEUP', 'SKINCARE', 'OTHER'])
       .withMessage('Invalid category'),
     body('duration')
       .optional()

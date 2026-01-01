@@ -1085,6 +1085,381 @@
 			"description": "Staff member management endpoints.\n\nAccess Control:\n- GET /api/staff - Both OWNER and RECEPTIONIST ✅\n- POST /api/staff - OWNER only ✅\n- PUT /api/staff/:id - OWNER only ✅\n- DELETE /api/staff/:id - OWNER only ✅"
 		},
 		{
+			"name": "Services",
+			"item": [
+				{
+					"name": "Get All Services",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/services",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"services"
+							]
+						},
+						"description": "Get all active services sorted by category and name. Public access."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"count\": 3,\n  \"data\": [\n    {\n      \"_id\": \"507f1f77bcf86cd799439011\",\n      \"name\": \"Precision Haircut\",\n      \"description\": \"Expert cut tailored to your face shape and style\",\n      \"category\": \"HAIR_STYLING\",\n      \"duration\": 45,\n      \"price\": 85,\n      \"isPopular\": true,\n      \"isActive\": true,\n      \"icon\": \"✂️\",\n      \"createdAt\": \"2025-01-01T00:00:00.000Z\",\n      \"updatedAt\": \"2025-01-01T00:00:00.000Z\"\n    },\n    {\n      \"_id\": \"507f1f77bcf86cd799439012\",\n      \"name\": \"Full Color\",\n      \"description\": \"Complete color transformation\",\n      \"category\": \"HAIR_COLORING\",\n      \"duration\": 120,\n      \"price\": 120,\n      \"isPopular\": true,\n      \"isActive\": true,\n      \"icon\": \"🎨\",\n      \"createdAt\": \"2025-01-01T00:00:00.000Z\",\n      \"updatedAt\": \"2025-01-01T00:00:00.000Z\"\n    }\n  ]\n}"
+						},
+						{
+							"name": "Empty List",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"count\": 0,\n  \"data\": []\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Service by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/services/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"services",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "507f1f77bcf86cd799439011",
+									"description": "Service ID"
+								}
+							]
+						},
+						"description": "Get a single service by ID. Public access."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"Precision Haircut\",\n    \"description\": \"Expert cut tailored to your face shape and style\",\n    \"category\": \"HAIR_STYLING\",\n    \"duration\": 45,\n    \"price\": 85,\n    \"isPopular\": true,\n    \"isActive\": true,\n    \"icon\": \"✂️\",\n    \"createdAt\": \"2025-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2025-01-01T00:00:00.000Z\"\n  }\n}"
+						},
+						{
+							"name": "Service Not Found",
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": \"Service not found with id of 507f1f77bcf86cd799439999\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Services by Category",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/services/category/:category",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"services",
+								"category",
+								":category"
+							],
+							"variable": [
+								{
+									"key": "category",
+									"value": "hair_styling",
+									"description": "Category name (HAIR_STYLING, HAIR_COLORING, FACIAL, etc.)"
+								}
+							]
+						},
+						"description": "Get all services in a specific category. Services are sorted by popularity (isPopular) then name. Public access.\n\nAvailable categories:\n- HAIR_STYLING\n- HAIR_COLORING\n- FACIAL\n- MASSAGE\n- BODY_TREATMENT\n- NAIL_CARE\n- HAIR_REMOVAL\n- MAKEUP\n- SKINCARE\n- OTHER"
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"count\": 2,\n  \"data\": [\n    {\n      \"_id\": \"507f1f77bcf86cd799439011\",\n      \"name\": \"Precision Haircut\",\n      \"description\": \"Expert cut tailored to your face shape and style\",\n      \"category\": \"HAIR_STYLING\",\n      \"duration\": 45,\n      \"price\": 85,\n      \"isPopular\": true,\n      \"isActive\": true,\n      \"icon\": \"✂️\"\n    },\n    {\n      \"_id\": \"507f1f77bcf86cd799439013\",\n      \"name\": \"Bridal Updo\",\n      \"description\": \"Elegant updo styling for special occasions\",\n      \"category\": \"HAIR_STYLING\",\n      \"duration\": 90,\n      \"price\": 150,\n      \"isPopular\": false,\n      \"isActive\": true,\n      \"icon\": \"✂️\"\n    }\n  ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Create Service",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ownerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Deep Tissue Massage\",\n  \"description\": \"Intense massage targeting muscle tension\",\n  \"category\": \"MASSAGE\",\n  \"duration\": 60,\n  \"price\": 95,\n  \"isPopular\": false,\n  \"icon\": \"💆\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/services",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"services"
+							]
+						},
+						"description": "Create a new service. Requires OWNER role.\n\nRequired fields:\n- name (2-100 characters)\n- category (see available categories)\n- duration (15-300 minutes)\n- price (>= 0)\n\nOptional fields:\n- description\n- isPopular (default: false)\n- icon (default: 💆)"
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"message\": \"Service created successfully\",\n  \"data\": {\n    \"_id\": \"507f1f77bcf86cd799439014\",\n    \"name\": \"Deep Tissue Massage\",\n    \"description\": \"Intense massage targeting muscle tension\",\n    \"category\": \"MASSAGE\",\n    \"duration\": 60,\n    \"price\": 95,\n    \"isPopular\": false,\n    \"isActive\": true,\n    \"icon\": \"💆\",\n    \"createdAt\": \"2025-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2025-01-01T00:00:00.000Z\"\n  }\n}"
+						},
+						{
+							"name": "Validation Error",
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"errors\": [\n    {\n      \"msg\": \"Service name is required\",\n      \"param\": \"name\"\n    },\n    {\n      \"msg\": \"Invalid category\",\n      \"param\": \"category\"\n    },\n    {\n      \"msg\": \"Duration must be between 15 and 300 minutes\",\n      \"param\": \"duration\"\n    }\n  ]\n}"
+						},
+						{
+							"name": "Unauthorized - Not OWNER",
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": \"User type 'RECEPTIONIST' is not authorized to access this route\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Update Service",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ownerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Premium Haircut\",\n  \"price\": 95,\n  \"isPopular\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/services/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"services",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "507f1f77bcf86cd799439011",
+									"description": "Service ID"
+								}
+							]
+						},
+						"description": "Update an existing service. Requires OWNER role. All fields are optional - only include fields you want to update."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"message\": \"Service updated successfully\",\n  \"data\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"Premium Haircut\",\n    \"description\": \"Expert cut tailored to your face shape and style\",\n    \"category\": \"HAIR_STYLING\",\n    \"duration\": 45,\n    \"price\": 95,\n    \"isPopular\": true,\n    \"isActive\": true,\n    \"icon\": \"✂️\",\n    \"createdAt\": \"2025-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2025-01-01T12:00:00.000Z\"\n  }\n}"
+						},
+						{
+							"name": "Service Not Found",
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": \"Service not found with id of 507f1f77bcf86cd799439999\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Delete Service (Deactivate)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ownerToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/services/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"services",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "507f1f77bcf86cd799439011",
+									"description": "Service ID"
+								}
+							]
+						},
+						"description": "Soft delete a service by setting isActive to false. Requires OWNER role. The service will no longer appear in public listings but remains in the database."
+					},
+					"response": [
+						{
+							"name": "Success Response",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"message\": \"Service deactivated successfully\",\n  \"data\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"Precision Haircut\",\n    \"description\": \"Expert cut tailored to your face shape and style\",\n    \"category\": \"HAIR_STYLING\",\n    \"duration\": 45,\n    \"price\": 85,\n    \"isPopular\": true,\n    \"isActive\": false,\n    \"icon\": \"✂️\",\n    \"createdAt\": \"2025-01-01T00:00:00.000Z\",\n    \"updatedAt\": \"2025-01-01T12:00:00.000Z\"\n  }\n}"
+						},
+						{
+							"name": "Service Not Found",
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": false,\n  \"error\": \"Service not found with id of 507f1f77bcf86cd799439999\"\n}"
+						}
+					]
+				}
+			],
+			"description": "Service management endpoints for salon services.\n\nAccess Control:\n- GET /api/services - Public access ✅\n- GET /api/services/:id - Public access ✅\n- GET /api/services/category/:category - Public access ✅\n- POST /api/services - OWNER only ✅\n- PUT /api/services/:id - OWNER only ✅\n- DELETE /api/services/:id - OWNER only (soft delete) ✅\n\nService Categories:\n- HAIR_STYLING\n- HAIR_COLORING\n- FACIAL\n- MASSAGE\n- BODY_TREATMENT\n- NAIL_CARE\n- HAIR_REMOVAL\n- MAKEUP\n- SKINCARE\n- OTHER"
+		},
+		{
 			"name": "Users",
 			"item": [
 				{
