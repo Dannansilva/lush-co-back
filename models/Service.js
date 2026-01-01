@@ -20,6 +20,8 @@ const ServiceSchema = new mongoose.Schema({
       values: [
         'HAIR_STYLING',
         'HAIR_COLORING',
+        'BEARD',
+        'BRIDAL',
         'FACIAL',
         'MASSAGE',
         'BODY_TREATMENT',

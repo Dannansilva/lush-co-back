@@ -166,6 +166,8 @@ exports.getCategories = async (req, res, next) => {
     const categories = [
       { value: 'HAIR_STYLING', label: 'Hair Styling', icon: '✂️' },
       { value: 'HAIR_COLORING', label: 'Hair Coloring', icon: '🎨' },
+      { value: 'BEARD', label: 'Beard', icon: '🧔' },
+      { value: 'BRIDAL', label: 'Bridal', icon: '👰' },
       { value: 'FACIAL', label: 'Facial', icon: '🧖' },
       { value: 'MASSAGE', label: 'Massage', icon: '💆' },
       { value: 'BODY_TREATMENT', label: 'Body Treatment', icon: '🧴' },

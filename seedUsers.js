@@ -14,7 +14,7 @@ const seedUsers = async () => {
 
     // Create Owner user
     const owner = await User.create({
-      name: 'Owner Lush&Co',
+      name: 'Shaveen Gunathilake',
       email: 'ownerlushco@gmail.com',
       password: 'OwnerLush123',
       userType: 'OWNER'
