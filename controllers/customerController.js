@@ -61,13 +61,18 @@ exports.createCustomer = async (req, res, next) => {
       return next(new ErrorResponse('Customer with this phone number already exists', 400));
     }
 
-    const customer = await Customer.create({
+    // Create customer data object, excluding empty strings
+    const customerData = {
       name,
-      email,
-      phoneNumber,
-      address,
-      notes
-    });
+      phoneNumber
+    };
+
+    // Only add optional fields if they have values
+    if (email && email.trim()) customerData.email = email;
+    if (address && address.trim()) customerData.address = address;
+    if (notes && notes.trim()) customerData.notes = notes;
+
+    const customer = await Customer.create(customerData);
 
     res.status(201).json({
       success: true,
@@ -105,9 +110,25 @@ exports.updateCustomer = async (req, res, next) => {
       }
     }
 
+    // Build update data object, excluding empty strings
+    const updateData = {};
+    const { name, email, phoneNumber, address, notes } = req.body;
+
+    if (name !== undefined) updateData.name = name;
+    if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
+    if (email !== undefined) {
+      updateData.email = (email && email.trim()) ? email : undefined;
+    }
+    if (address !== undefined) {
+      updateData.address = (address && address.trim()) ? address : undefined;
+    }
+    if (notes !== undefined) {
+      updateData.notes = (notes && notes.trim()) ? notes : undefined;
+    }
+
     customer = await Customer.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       {
         new: true,
         runValidators: true

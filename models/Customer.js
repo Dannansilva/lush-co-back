@@ -57,9 +57,8 @@ const CustomerSchema = new mongoose.Schema({
 });
 
 // Update the updatedAt field before saving
-CustomerSchema.pre('save', function(next) {
+CustomerSchema.pre('save', async function() {
   this.updatedAt = Date.now();
-  next();
 });
 
 // Create index on name, email, and phoneNumber for search optimization

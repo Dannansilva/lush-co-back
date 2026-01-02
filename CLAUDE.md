@@ -92,6 +92,113 @@ The Postman collection should:
 - Include example responses
 - Be organized by route modules (users, products, etc.)
 
+## Database & Models
+
+### MongoDB & Mongoose
+
+This project uses MongoDB with Mongoose ODM. Connection string is configured via `MONGODB_URI` environment variable.
+
+### Model Directory Structure
+
+- **models/** - Mongoose schema definitions
+  - `User.js` - User authentication model
+  - `Customer.js` - Customer/client management
+  - `StaffMember.js` - Staff member records
+  - `Service.js` - Service catalog
+
+### Mongoose Middleware Patterns
+
+**IMPORTANT**: When creating Mongoose middleware (pre/post hooks), always use the async/await pattern:
+
+```javascript
+// ✅ CORRECT - Use async function without next callback
+CustomerSchema.pre('save', async function() {
+  this.updatedAt = Date.now();
+});
+
+// ❌ INCORRECT - Don't use function(next) pattern
+CustomerSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next(); // This will cause "next is not a function" error
+});
+```
+
+**Why?** Modern Mongoose (v5+) handles async middleware automatically. Using the old callback pattern with `next` can cause runtime errors.
+
+**Example from User.js:**
+```javascript
+UserSchema.pre('save', async function() {
+  if (!this.isModified('password')) {
+    return;
+  }
+  const salt = await bcrypt.genSalt(parseInt(process.env.BCRYPT_ROUNDS) || 10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
+```
+
+### Common Mongoose Patterns in This Project
+
+1. **Schema Validation**: Use built-in validators (required, min, max, match, etc.)
+2. **Indexes**: Add indexes for frequently queried fields (especially for search)
+3. **Timestamps**: Manually manage `createdAt` and `updatedAt` in pre-save hooks
+4. **Virtual Fields**: Keep models simple; calculate derived data in controllers if needed
+
+### Handling Optional Fields
+
+When creating or updating documents with optional fields (like email, address, notes), follow this pattern to avoid storing empty strings:
+
+**In Route Validation (routes/):**
+```javascript
+body('email')
+  .optional({ nullable: true, checkFalsy: true })  // Allows null, undefined, empty string
+  .trim()
+  .isEmail()
+  .withMessage('Please provide a valid email')
+  .normalizeEmail(),
+```
+
+**In Controllers - CREATE:**
+```javascript
+const { name, email, phoneNumber, address, notes } = req.body;
+
+// Build data object with only non-empty values
+const customerData = {
+  name,
+  phoneNumber  // required fields
+};
+
+// Only add optional fields if they have values
+if (email && email.trim()) customerData.email = email;
+if (address && address.trim()) customerData.address = address;
+if (notes && notes.trim()) customerData.notes = notes;
+
+const customer = await Customer.create(customerData);
+```
+
+**In Controllers - UPDATE:**
+```javascript
+const updateData = {};
+const { name, email, phoneNumber, address, notes } = req.body;
+
+if (name !== undefined) updateData.name = name;
+if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
+
+// For optional fields, convert empty strings to undefined
+if (email !== undefined) {
+  updateData.email = (email && email.trim()) ? email : undefined;
+}
+if (address !== undefined) {
+  updateData.address = (address && address.trim()) ? address : undefined;
+}
+
+const customer = await Customer.findByIdAndUpdate(id, updateData, {
+  new: true,
+  runValidators: true
+});
+```
+
+**Why?** This prevents storing empty strings `""` in the database, which can cause issues with unique sparse indexes and makes data cleaner. Undefined values won't be stored in MongoDB documents.
+
 ## Notes for Future Development
 
 - The server listens on all network interfaces (0.0.0.0)
