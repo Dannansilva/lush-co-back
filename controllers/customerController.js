@@ -1,23 +1,19 @@
 const { validationResult } = require('express-validator');
 const ErrorResponse = require('../utils/ErrorResponse');
-
-// NOTE: This is a placeholder controller for customer management
-// You'll need to create a Customer model first
+const Customer = require('../models/Customer');
 
 // @desc    Get all customers
 // @route   GET /api/customers
 // @access  Private (OWNER and RECEPTIONIST)
 exports.getAllCustomers = async (req, res, next) => {
   try {
-    // TODO: Implement after creating Customer model
-    // const customers = await Customer.find()
-    //   .sort({ createdAt: -1 });
+    const customers = await Customer.find()
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
-      message: 'Customer management feature coming soon',
-      count: 0,
-      data: []
+      count: customers.length,
+      data: customers
     });
   } catch (error) {
     next(error);
@@ -29,11 +25,15 @@ exports.getAllCustomers = async (req, res, next) => {
 // @access  Private (OWNER and RECEPTIONIST)
 exports.getCustomer = async (req, res, next) => {
   try {
-    // TODO: Implement
+    const customer = await Customer.findById(req.params.id);
+
+    if (!customer) {
+      return next(new ErrorResponse('Customer not found', 404));
+    }
+
     res.status(200).json({
       success: true,
-      message: 'Customer details coming soon',
-      data: null
+      data: customer
     });
   } catch (error) {
     next(error);
@@ -53,20 +53,25 @@ exports.createCustomer = async (req, res, next) => {
   }
 
   try {
-    // TODO: Implement after creating Customer model
-    // const { name, email, phoneNumber, address, notes } = req.body;
-    // const customer = await Customer.create({
-    //   name,
-    //   email,
-    //   phoneNumber,
-    //   address,
-    //   notes
-    // });
+    const { name, email, phoneNumber, address, notes } = req.body;
+
+    // Check if customer with same phone number already exists
+    const existingCustomer = await Customer.findOne({ phoneNumber });
+    if (existingCustomer) {
+      return next(new ErrorResponse('Customer with this phone number already exists', 400));
+    }
+
+    const customer = await Customer.create({
+      name,
+      email,
+      phoneNumber,
+      address,
+      notes
+    });
 
     res.status(201).json({
       success: true,
-      message: 'Customer creation coming soon',
-      data: null
+      data: customer
     });
   } catch (error) {
     next(error);
@@ -86,11 +91,32 @@ exports.updateCustomer = async (req, res, next) => {
   }
 
   try {
-    // TODO: Implement
+    let customer = await Customer.findById(req.params.id);
+
+    if (!customer) {
+      return next(new ErrorResponse('Customer not found', 404));
+    }
+
+    // If updating phone number, check if it's already in use by another customer
+    if (req.body.phoneNumber && req.body.phoneNumber !== customer.phoneNumber) {
+      const existingCustomer = await Customer.findOne({ phoneNumber: req.body.phoneNumber });
+      if (existingCustomer) {
+        return next(new ErrorResponse('Customer with this phone number already exists', 400));
+      }
+    }
+
+    customer = await Customer.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true
+      }
+    );
+
     res.status(200).json({
       success: true,
-      message: 'Customer update coming soon',
-      data: null
+      data: customer
     });
   } catch (error) {
     next(error);
@@ -102,10 +128,16 @@ exports.updateCustomer = async (req, res, next) => {
 // @access  Private (OWNER only)
 exports.deleteCustomer = async (req, res, next) => {
   try {
-    // TODO: Implement
+    const customer = await Customer.findById(req.params.id);
+
+    if (!customer) {
+      return next(new ErrorResponse('Customer not found', 404));
+    }
+
+    await customer.deleteOne();
+
     res.status(200).json({
       success: true,
-      message: 'Customer deletion coming soon',
       data: {}
     });
   } catch (error) {
@@ -117,22 +149,29 @@ exports.deleteCustomer = async (req, res, next) => {
 // @route   GET /api/customers/search?query=
 // @access  Private (OWNER and RECEPTIONIST)
 exports.searchCustomers = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      errors: errors.array()
+    });
+  }
+
   try {
-    // TODO: Implement search by name, email, or phone
-    // const { query } = req.query;
-    // const customers = await Customer.find({
-    //   $or: [
-    //     { name: { $regex: query, $options: 'i' } },
-    //     { email: { $regex: query, $options: 'i' } },
-    //     { phoneNumber: { $regex: query, $options: 'i' } }
-    //   ]
-    // });
+    const { query } = req.query;
+
+    const customers = await Customer.find({
+      $or: [
+        { name: { $regex: query, $options: 'i' } },
+        { email: { $regex: query, $options: 'i' } },
+        { phoneNumber: { $regex: query, $options: 'i' } }
+      ]
+    }).sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
-      message: 'Customer search coming soon',
-      count: 0,
-      data: []
+      count: customers.length,
+      data: customers
     });
   } catch (error) {
     next(error);
