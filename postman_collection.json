@@ -1337,6 +1337,229 @@
 			"description": "Customer management endpoints for tracking salon clients.\n\nAccess Control:\n- GET /api/customers - OWNER and RECEPTIONIST ✅\n- GET /api/customers/:id - OWNER and RECEPTIONIST ✅\n- POST /api/customers - OWNER and RECEPTIONIST ✅\n- PUT /api/customers/:id - OWNER and RECEPTIONIST ✅\n- DELETE /api/customers/:id - OWNER only ✅\n- GET /api/customers/search - OWNER and RECEPTIONIST ✅\n\nCustomer Fields:\n- name (required): Customer's full name\n- phoneNumber (required): Primary contact number\n- email (optional): Email address\n- address (optional): Physical address\n- notes (optional): Additional notes about the customer\n- totalAppointments (auto): Total number of appointments\n- totalSpent (auto): Total amount spent\n- lastVisit (auto): Date of last appointment"
 		},
 		{
+			"name": "Appointments",
+			"item": [
+				{
+					"name": "Get All Appointments",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/appointments",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"appointments"
+							]
+						},
+						"description": "Get all appointments sorted by date. Requires OWNER or RECEPTIONIST role."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Today's Appointments",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/appointments/today",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"appointments",
+								"today"
+							]
+						},
+						"description": "Get today's appointments (excludes CANCELLED). Requires OWNER or RECEPTIONIST role."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single Appointment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/appointments/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"appointments",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "507f1f77bcf86cd799439011",
+									"description": "Appointment ID"
+								}
+							]
+						},
+						"description": "Get a single appointment by ID. Requires OWNER or RECEPTIONIST role."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Appointment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerId\": \"507f1f77bcf86cd799439011\",\n  \"staffId\": \"507f1f77bcf86cd799439012\",\n  \"serviceIds\": [\"507f1f77bcf86cd799439013\", \"507f1f77bcf86cd799439014\"],\n  \"appointmentDate\": \"2026-01-15T10:00:00.000Z\",\n  \"status\": \"CONFIRMED\",\n  \"notes\": \"Customer wants haircut and coloring\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/appointments",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"appointments"
+							]
+						},
+						"description": "Create a new appointment. Requires OWNER or RECEPTIONIST role.\n\nRequired fields:\n- customerId (MongoDB ObjectId)\n- staffId (MongoDB ObjectId)\n- serviceIds (Array of MongoDB ObjectIds - at least one service required)\n- appointmentDate (ISO8601 date string)\n\nOptional fields:\n- status (SCHEDULED, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELLED, NO_SHOW - default: SCHEDULED)\n- notes\n\nNote: Duration and price are automatically calculated as the sum of all selected services."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Appointment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"COMPLETED\",\n  \"notes\": \"Service completed successfully\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/appointments/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"appointments",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "507f1f77bcf86cd799439011",
+									"description": "Appointment ID"
+								}
+							]
+						},
+						"description": "Update an appointment. Requires OWNER or RECEPTIONIST role. All fields are optional.\n\nIf services are changed, duration and price are automatically recalculated as the sum of all selected services."
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Appointment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/appointments/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"appointments",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "507f1f77bcf86cd799439011",
+									"description": "Appointment ID"
+								}
+							]
+						},
+						"description": "Cancel an appointment (soft delete - sets status to CANCELLED). Requires OWNER or RECEPTIONIST role."
+					},
+					"response": []
+				}
+			],
+			"description": "Appointment management endpoints.\n\nAccess Control:\n- GET /api/appointments - OWNER and RECEPTIONIST ✅\n- GET /api/appointments/today - OWNER and RECEPTIONIST ✅\n- GET /api/appointments/:id - OWNER and RECEPTIONIST ✅\n- POST /api/appointments - OWNER and RECEPTIONIST ✅\n- PUT /api/appointments/:id - OWNER and RECEPTIONIST ✅\n- DELETE /api/appointments/:id - OWNER and RECEPTIONIST ✅\n\nAppointment Statuses:\n- SCHEDULED: Appointment is scheduled but not confirmed\n- CONFIRMED: Appointment is confirmed by customer\n- IN_PROGRESS: Service is currently being provided\n- COMPLETED: Service has been completed\n- CANCELLED: Appointment was cancelled\n- NO_SHOW: Customer did not show up\n\nAppointment Fields:\n- customer (required): Reference to Customer\n- staff (required): Reference to Staff Member\n- services (required): Array of references to Services (at least one required)\n- appointmentDate (required): Date and time of appointment\n- duration (auto): Sum of all service durations\n- price (auto): Sum of all service prices\n- status (optional): Default is SCHEDULED\n- notes (optional): Additional notes\n- createdBy (auto): User who created the appointment\n\nMultiple Services:\nAppointments support multiple services per booking. For example, a customer can book a haircut and coloring in one appointment. The total duration and price are automatically calculated."
+		},
+		{
 			"name": "Services",
 			"item": [
 				{

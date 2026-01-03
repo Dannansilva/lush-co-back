@@ -199,6 +199,65 @@ const customer = await Customer.findByIdAndUpdate(id, updateData, {
 
 **Why?** This prevents storing empty strings `""` in the database, which can cause issues with unique sparse indexes and makes data cleaner. Undefined values won't be stored in MongoDB documents.
 
+### Working with Referenced Arrays (One-to-Many)
+
+When a document references an array of other documents (like appointments with multiple services), follow these patterns:
+
+**Model Definition:**
+```javascript
+services: {
+  type: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Service'
+  }],
+  validate: {
+    validator: function(v) {
+      return v && v.length > 0;
+    },
+    message: 'At least one service is required'
+  },
+  required: [true, 'Services are required']
+}
+```
+
+**Route Validation:**
+```javascript
+body('serviceIds')
+  .isArray({ min: 1 })
+  .withMessage('At least one service is required'),
+body('serviceIds.*')
+  .isMongoId()
+  .withMessage('Invalid service ID'),
+```
+
+**Controller - Validate and Process Array:**
+```javascript
+// Verify all services exist
+const services = await Service.find({ _id: { $in: serviceIds } });
+
+if (services.length !== serviceIds.length) {
+  return next(new ErrorResponse('One or more services not found', 404));
+}
+
+// Calculate aggregated values
+const totalDuration = services.reduce((sum, service) => sum + service.duration, 0);
+const totalPrice = services.reduce((sum, service) => sum + service.price, 0);
+
+// Create document with array reference
+const appointment = await Appointment.create({
+  services: serviceIds,
+  duration: totalDuration,
+  price: totalPrice,
+  // ... other fields
+});
+
+// Populate the array when returning
+const populated = await Appointment.findById(appointment._id)
+  .populate('services', 'name duration price category');
+```
+
+**Why?** This pattern ensures all referenced documents exist before creating the relationship, calculates aggregated values (like totals), and properly validates array inputs.
+
 ## Notes for Future Development
 
 - The server listens on all network interfaces (0.0.0.0)

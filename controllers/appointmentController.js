@@ -1,25 +1,26 @@
 const { validationResult } = require('express-validator');
 const ErrorResponse = require('../utils/ErrorResponse');
-
-// NOTE: This is a placeholder controller for future appointment management
-// You'll need to create an Appointment model first
+const Appointment = require('../models/Appointment');
+const Customer = require('../models/Customer');
+const StaffMember = require('../models/StaffMember');
+const Service = require('../models/Service');
 
 // @desc    Get all appointments
 // @route   GET /api/appointments
 // @access  Private (OWNER and RECEPTIONIST)
 exports.getAllAppointments = async (req, res, next) => {
   try {
-    // TODO: Implement after creating Appointment model
-    // const appointments = await Appointment.find()
-    //   .populate('customer', 'name phoneNumber')
-    //   .populate('staff', 'name')
-    //   .sort({ appointmentDate: 1 });
+    const appointments = await Appointment.find()
+      .populate('customer', 'name phoneNumber email')
+      .populate('staff', 'name phoneNumber')
+      .populate('services', 'name duration price category')
+      .populate('createdBy', 'name email')
+      .sort({ appointmentDate: 1 });
 
     res.status(200).json({
       success: true,
-      message: 'Appointments feature coming soon',
-      count: 0,
-      data: []
+      count: appointments.length,
+      data: appointments
     });
   } catch (error) {
     next(error);
@@ -31,11 +32,19 @@ exports.getAllAppointments = async (req, res, next) => {
 // @access  Private (OWNER and RECEPTIONIST)
 exports.getAppointment = async (req, res, next) => {
   try {
-    // TODO: Implement after creating Appointment model
+    const appointment = await Appointment.findById(req.params.id)
+      .populate('customer', 'name phoneNumber email')
+      .populate('staff', 'name phoneNumber')
+      .populate('services', 'name duration price category')
+      .populate('createdBy', 'name email');
+
+    if (!appointment) {
+      return next(new ErrorResponse('Appointment not found', 404));
+    }
+
     res.status(200).json({
       success: true,
-      message: 'Appointment details coming soon',
-      data: null
+      data: appointment
     });
   } catch (error) {
     next(error);
@@ -55,22 +64,60 @@ exports.createAppointment = async (req, res, next) => {
   }
 
   try {
-    // TODO: Implement after creating Appointment model
-    // const { customerId, staffId, serviceId, appointmentDate, notes } = req.body;
-    // const appointment = await Appointment.create({
-    //   customer: customerId,
-    //   staff: staffId,
-    //   service: serviceId,
-    //   appointmentDate,
-    //   notes,
-    //   status: 'SCHEDULED',
-    //   createdBy: req.user._id
-    // });
+    const { customerId, staffId, serviceIds, appointmentDate, notes, status } = req.body;
+
+    // Verify customer exists
+    const customer = await Customer.findById(customerId);
+    if (!customer) {
+      return next(new ErrorResponse('Customer not found', 404));
+    }
+
+    // Verify staff member exists
+    const staff = await StaffMember.findById(staffId);
+    if (!staff) {
+      return next(new ErrorResponse('Staff member not found', 404));
+    }
+
+    // Verify all services exist and are active
+    const services = await Service.find({ _id: { $in: serviceIds } });
+
+    if (services.length !== serviceIds.length) {
+      return next(new ErrorResponse('One or more services not found', 404));
+    }
+
+    // Check if all services are active
+    const inactiveServices = services.filter(s => !s.isActive);
+    if (inactiveServices.length > 0) {
+      return next(new ErrorResponse('One or more services are not currently available', 400));
+    }
+
+    // Calculate total duration and price
+    const totalDuration = services.reduce((sum, service) => sum + service.duration, 0);
+    const totalPrice = services.reduce((sum, service) => sum + service.price, 0);
+
+    // Create appointment with total duration and price
+    const appointment = await Appointment.create({
+      customer: customerId,
+      staff: staffId,
+      services: serviceIds,
+      appointmentDate,
+      duration: totalDuration,
+      price: totalPrice,
+      status: status || 'SCHEDULED',
+      notes: notes && notes.trim() ? notes : undefined,
+      createdBy: req.user._id
+    });
+
+    // Populate the appointment before returning
+    const populatedAppointment = await Appointment.findById(appointment._id)
+      .populate('customer', 'name phoneNumber email')
+      .populate('staff', 'name phoneNumber')
+      .populate('services', 'name duration price category')
+      .populate('createdBy', 'name email');
 
     res.status(201).json({
       success: true,
-      message: 'Appointment creation coming soon',
-      data: null
+      data: populatedAppointment
     });
   } catch (error) {
     next(error);
@@ -90,11 +137,81 @@ exports.updateAppointment = async (req, res, next) => {
   }
 
   try {
-    // TODO: Implement after creating Appointment model
+    let appointment = await Appointment.findById(req.params.id);
+
+    if (!appointment) {
+      return next(new ErrorResponse('Appointment not found', 404));
+    }
+
+    const { customerId, staffId, serviceIds, appointmentDate, notes, status } = req.body;
+
+    // Build update data
+    const updateData = {};
+
+    // Verify and update customer if provided
+    if (customerId !== undefined) {
+      const customer = await Customer.findById(customerId);
+      if (!customer) {
+        return next(new ErrorResponse('Customer not found', 404));
+      }
+      updateData.customer = customerId;
+    }
+
+    // Verify and update staff if provided
+    if (staffId !== undefined) {
+      const staff = await StaffMember.findById(staffId);
+      if (!staff) {
+        return next(new ErrorResponse('Staff member not found', 404));
+      }
+      updateData.staff = staffId;
+    }
+
+    // Verify services and update duration/price if services are changed
+    if (serviceIds !== undefined) {
+      const services = await Service.find({ _id: { $in: serviceIds } });
+
+      if (services.length !== serviceIds.length) {
+        return next(new ErrorResponse('One or more services not found', 404));
+      }
+
+      // Check if all services are active
+      const inactiveServices = services.filter(s => !s.isActive);
+      if (inactiveServices.length > 0) {
+        return next(new ErrorResponse('One or more services are not currently available', 400));
+      }
+
+      // Calculate total duration and price
+      const totalDuration = services.reduce((sum, service) => sum + service.duration, 0);
+      const totalPrice = services.reduce((sum, service) => sum + service.price, 0);
+
+      updateData.services = serviceIds;
+      updateData.duration = totalDuration;
+      updateData.price = totalPrice;
+    }
+
+    // Update other fields
+    if (appointmentDate !== undefined) updateData.appointmentDate = appointmentDate;
+    if (status !== undefined) updateData.status = status;
+    if (notes !== undefined) {
+      updateData.notes = (notes && notes.trim()) ? notes : undefined;
+    }
+
+    appointment = await Appointment.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      {
+        new: true,
+        runValidators: true
+      }
+    )
+      .populate('customer', 'name phoneNumber email')
+      .populate('staff', 'name phoneNumber')
+      .populate('services', 'name duration price category')
+      .populate('createdBy', 'name email');
+
     res.status(200).json({
       success: true,
-      message: 'Appointment update coming soon',
-      data: null
+      data: appointment
     });
   } catch (error) {
     next(error);
@@ -106,10 +223,18 @@ exports.updateAppointment = async (req, res, next) => {
 // @access  Private (OWNER and RECEPTIONIST)
 exports.cancelAppointment = async (req, res, next) => {
   try {
-    // TODO: Implement soft delete (status = 'CANCELLED')
+    const appointment = await Appointment.findById(req.params.id);
+
+    if (!appointment) {
+      return next(new ErrorResponse('Appointment not found', 404));
+    }
+
+    // Soft delete by updating status to CANCELLED
+    appointment.status = 'CANCELLED';
+    await appointment.save();
+
     res.status(200).json({
       success: true,
-      message: 'Appointment cancellation coming soon',
       data: {}
     });
   } catch (error) {
@@ -122,22 +247,25 @@ exports.cancelAppointment = async (req, res, next) => {
 // @access  Private (OWNER and RECEPTIONIST)
 exports.getTodayAppointments = async (req, res, next) => {
   try {
-    // TODO: Implement after creating Appointment model
-    // const startOfDay = new Date();
-    // startOfDay.setHours(0, 0, 0, 0);
-    // const endOfDay = new Date();
-    // endOfDay.setHours(23, 59, 59, 999);
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
 
-    // const appointments = await Appointment.find({
-    //   appointmentDate: { $gte: startOfDay, $lte: endOfDay },
-    //   status: { $ne: 'CANCELLED' }
-    // }).populate('customer staff service');
+    const appointments = await Appointment.find({
+      appointmentDate: { $gte: startOfDay, $lte: endOfDay },
+      status: { $ne: 'CANCELLED' }
+    })
+      .populate('customer', 'name phoneNumber email')
+      .populate('staff', 'name phoneNumber')
+      .populate('services', 'name duration price category')
+      .populate('createdBy', 'name email')
+      .sort({ appointmentDate: 1 });
 
     res.status(200).json({
       success: true,
-      message: "Today's appointments feature coming soon",
-      count: 0,
-      data: []
+      count: appointments.length,
+      data: appointments
     });
   } catch (error) {
     next(error);

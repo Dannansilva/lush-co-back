@@ -46,9 +46,10 @@ router.post(
       .withMessage('Staff ID is required')
       .isMongoId()
       .withMessage('Invalid staff ID'),
-    body('serviceId')
-      .notEmpty()
-      .withMessage('Service ID is required')
+    body('serviceIds')
+      .isArray({ min: 1 })
+      .withMessage('At least one service is required'),
+    body('serviceIds.*')
       .isMongoId()
       .withMessage('Invalid service ID'),
     body('appointmentDate')
@@ -56,8 +57,12 @@ router.post(
       .withMessage('Appointment date is required')
       .isISO8601()
       .withMessage('Invalid date format'),
-    body('notes')
+    body('status')
       .optional()
+      .isIn(['SCHEDULED', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'NO_SHOW'])
+      .withMessage('Invalid status'),
+    body('notes')
+      .optional({ nullable: true, checkFalsy: true })
       .trim()
   ],
   createAppointment
@@ -81,7 +86,11 @@ router.put(
       .optional()
       .isMongoId()
       .withMessage('Invalid staff ID'),
-    body('serviceId')
+    body('serviceIds')
+      .optional()
+      .isArray({ min: 1 })
+      .withMessage('At least one service is required'),
+    body('serviceIds.*')
       .optional()
       .isMongoId()
       .withMessage('Invalid service ID'),
@@ -92,7 +101,10 @@ router.put(
     body('status')
       .optional()
       .isIn(['SCHEDULED', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'NO_SHOW'])
-      .withMessage('Invalid status')
+      .withMessage('Invalid status'),
+    body('notes')
+      .optional({ nullable: true, checkFalsy: true })
+      .trim()
   ],
   updateAppointment
 );
