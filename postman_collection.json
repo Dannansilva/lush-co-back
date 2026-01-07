@@ -1560,6 +1560,253 @@
 			"description": "Appointment management endpoints.\n\nAccess Control:\n- GET /api/appointments - OWNER and RECEPTIONIST ✅\n- GET /api/appointments/today - OWNER and RECEPTIONIST ✅\n- GET /api/appointments/:id - OWNER and RECEPTIONIST ✅\n- POST /api/appointments - OWNER and RECEPTIONIST ✅\n- PUT /api/appointments/:id - OWNER and RECEPTIONIST ✅\n- DELETE /api/appointments/:id - OWNER and RECEPTIONIST ✅\n\nAppointment Statuses:\n- SCHEDULED: Appointment is scheduled but not confirmed\n- CONFIRMED: Appointment is confirmed by customer\n- IN_PROGRESS: Service is currently being provided\n- COMPLETED: Service has been completed\n- CANCELLED: Appointment was cancelled\n- NO_SHOW: Customer did not show up\n\nAppointment Fields:\n- customer (required): Reference to Customer\n- staff (required): Reference to Staff Member\n- services (required): Array of references to Services (at least one required)\n- appointmentDate (required): Date and time of appointment\n- duration (auto): Sum of all service durations\n- price (auto): Sum of all service prices\n- status (optional): Default is SCHEDULED\n- notes (optional): Additional notes\n- createdBy (auto): User who created the appointment\n\nMultiple Services:\nAppointments support multiple services per booking. For example, a customer can book a haircut and coloring in one appointment. The total duration and price are automatically calculated."
 		},
 		{
+			"name": "Revenue",
+			"item": [
+				{
+					"name": "Get Revenue Metrics",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/revenue/metrics?year=2025",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"revenue",
+								"metrics"
+							],
+							"query": [
+								{
+									"key": "year",
+									"value": "2025",
+									"description": "Filter by year (optional)"
+								},
+								{
+									"key": "startDate",
+									"value": "2025-01-01",
+									"description": "Start date for custom range (optional)",
+									"disabled": true
+								},
+								{
+									"key": "endDate",
+									"value": "2025-12-31",
+									"description": "End date for custom range (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get overall revenue metrics including total revenue, total appointments, average transaction, and total customers. Requires OWNER role.\n\nQuery Parameters (all optional):\n- year: Filter by specific year (e.g., 2025)\n- startDate & endDate: Filter by custom date range (ISO8601 format)\n\nDefault: Current year if no filters provided"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Revenue by Staff",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/revenue/by-staff?year=2025",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"revenue",
+								"by-staff"
+							],
+							"query": [
+								{
+									"key": "year",
+									"value": "2025",
+									"description": "Filter by year (optional)"
+								},
+								{
+									"key": "startDate",
+									"value": "2025-01-01",
+									"description": "Start date for custom range (optional)",
+									"disabled": true
+								},
+								{
+									"key": "endDate",
+									"value": "2025-12-31",
+									"description": "End date for custom range (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get revenue breakdown by staff member. Returns total revenue, appointment count, and average revenue per staff member. Sorted by total revenue (highest first). Requires OWNER role.\n\nQuery Parameters (all optional):\n- year: Filter by specific year (e.g., 2025)\n- startDate & endDate: Filter by custom date range (ISO8601 format)\n\nDefault: Current year if no filters provided"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Revenue by Category",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/revenue/by-category?year=2025",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"revenue",
+								"by-category"
+							],
+							"query": [
+								{
+									"key": "year",
+									"value": "2025",
+									"description": "Filter by year (optional)"
+								},
+								{
+									"key": "startDate",
+									"value": "2025-01-01",
+									"description": "Start date for custom range (optional)",
+									"disabled": true
+								},
+								{
+									"key": "endDate",
+									"value": "2025-12-31",
+									"description": "End date for custom range (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get revenue breakdown by service category. Returns total revenue and service count per category. Sorted by total revenue (highest first). Requires OWNER role.\n\nQuery Parameters (all optional):\n- year: Filter by specific year (e.g., 2025)\n- startDate & endDate: Filter by custom date range (ISO8601 format)\n\nDefault: Current year if no filters provided"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Revenue Trends",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/revenue/trends?year=2025",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"revenue",
+								"trends"
+							],
+							"query": [
+								{
+									"key": "year",
+									"value": "2025",
+									"description": "Filter by year (optional)"
+								}
+							]
+						},
+						"description": "Get monthly revenue trends for the specified year. Returns revenue and appointment count for each month. Months with no appointments will show 0 revenue. Requires OWNER role.\n\nQuery Parameters:\n- year: Filter by specific year (e.g., 2025) - optional, defaults to current year"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Staff Revenue",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/revenue/staff/:staffId?year=2025",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"revenue",
+								"staff",
+								":staffId"
+							],
+							"query": [
+								{
+									"key": "year",
+									"value": "2025",
+									"description": "Filter by year (optional)"
+								},
+								{
+									"key": "startDate",
+									"value": "2025-01-01",
+									"description": "Start date for custom range (optional)",
+									"disabled": true
+								},
+								{
+									"key": "endDate",
+									"value": "2025-12-31",
+									"description": "End date for custom range (optional)",
+									"disabled": true
+								}
+							],
+							"variable": [
+								{
+									"key": "staffId",
+									"value": "507f1f77bcf86cd799439011",
+									"description": "Staff Member ID"
+								}
+							]
+						},
+						"description": "Get revenue metrics for a specific staff member. Returns total revenue, appointment count, and average revenue. Requires OWNER role.\n\nQuery Parameters (all optional):\n- year: Filter by specific year (e.g., 2025)\n- startDate & endDate: Filter by custom date range (ISO8601 format)\n\nDefault: Current year if no filters provided"
+					},
+					"response": []
+				}
+			],
+			"description": "Revenue reporting and analytics endpoints. All revenue endpoints require OWNER role and only count COMPLETED appointments.\n\nAccess Control:\n- GET /api/revenue/metrics - OWNER only ✅\n- GET /api/revenue/by-staff - OWNER only ✅\n- GET /api/revenue/by-category - OWNER only ✅\n- GET /api/revenue/trends - OWNER only ✅\n- GET /api/revenue/staff/:staffId - OWNER only ✅\n\nRevenue Calculation:\n- Only COMPLETED appointments are counted in revenue\n- Revenue is based on the appointment price (sum of all services)\n- All endpoints support filtering by year or custom date range\n\nCommon Query Parameters:\n- year: Integer (2000-2100) - Filter by specific year\n- startDate: ISO8601 date - Start of custom date range\n- endDate: ISO8601 date - End of custom date range\n\nIf no date filter is provided, endpoints default to the current year."
+		},
+		{
 			"name": "Services",
 			"item": [
 				{

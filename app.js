@@ -15,6 +15,7 @@ var dashboardRouter = require('./routes/dashboard');
 var appointmentsRouter = require('./routes/appointments');
 var customersRouter = require('./routes/customers');
 var servicesRouter = require('./routes/services');
+var revenueRouter = require('./routes/revenue');
 
 var app = express();
 
@@ -43,6 +44,7 @@ app.use('/api/dashboard', dashboardRouter);
 app.use('/api/appointments', appointmentsRouter);
 app.use('/api/customers', customersRouter);
 app.use('/api/services', servicesRouter);
+app.use('/api/revenue', revenueRouter);
 
 // Import custom error handler
 const errorHandler = require('./middleware/errorHandler');

@@ -3,7 +3,10 @@
     "allow": [
       "Bash(cat:*)",
       "Bash(curl:*)",
-      "Bash(npm start)"
+      "Bash(npm start)",
+      "Bash(taskkill:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)"
     ]
   }
 }
