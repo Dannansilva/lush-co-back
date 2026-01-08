@@ -331,6 +331,51 @@ exports.getMonthlyRevenue = async (req, res, next) => {
     // Convert to array and sort
     const dailyData = Object.values(dailyBreakdown).sort((a, b) => a.day - b.day);
 
+    // Calculate revenue by staff member
+    const revenueByStaff = {};
+    appointments.forEach(apt => {
+      const staffId = apt.staff._id.toString();
+      if (!revenueByStaff[staffId]) {
+        revenueByStaff[staffId] = {
+          staffId,
+          staffName: apt.staff.name,
+          totalRevenue: 0,
+          appointmentCount: 0
+        };
+      }
+      revenueByStaff[staffId].totalRevenue += apt.price;
+      revenueByStaff[staffId].appointmentCount += 1;
+    });
+
+    // Convert to array and sort by revenue
+    const staffData = Object.values(revenueByStaff)
+      .map(staff => ({
+        ...staff,
+        avgRevenue: staff.totalRevenue / staff.appointmentCount
+      }))
+      .sort((a, b) => b.totalRevenue - a.totalRevenue);
+
+    // Calculate revenue by category
+    const revenueByCategory = {};
+    appointments.forEach(apt => {
+      apt.services.forEach(service => {
+        const category = service.category;
+        if (!revenueByCategory[category]) {
+          revenueByCategory[category] = {
+            category,
+            totalRevenue: 0,
+            serviceCount: 0
+          };
+        }
+        revenueByCategory[category].totalRevenue += service.price;
+        revenueByCategory[category].serviceCount += 1;
+      });
+    });
+
+    // Convert to array and sort by revenue
+    const categoryData = Object.values(revenueByCategory)
+      .sort((a, b) => b.totalRevenue - a.totalRevenue);
+
     // Month names
     const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
                         'July', 'August', 'September', 'October', 'November', 'December'];
@@ -351,6 +396,8 @@ exports.getMonthlyRevenue = async (req, res, next) => {
         avgRevenuePerDay: dailyData.length > 0 ? totalRevenue / dailyData.length : 0,
         avgRevenuePerAppointment: appointments.length > 0 ? totalRevenue / appointments.length : 0
       },
+      revenueByStaff: staffData,
+      revenueByCategory: categoryData,
       dailyBreakdown: dailyData,
       appointments
     });
