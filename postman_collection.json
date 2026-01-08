@@ -1747,6 +1747,104 @@
 					"response": []
 				},
 				{
+					"name": "Get Monthly Revenue",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/revenue/monthly?filter=current",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"revenue",
+								"monthly"
+							],
+							"query": [
+								{
+									"key": "filter",
+									"value": "current",
+									"description": "Filter: 'current' (default) or 'last'"
+								},
+								{
+									"key": "month",
+									"value": "1",
+									"description": "Specific month (1-12)",
+									"disabled": true
+								},
+								{
+									"key": "year",
+									"value": "2026",
+									"description": "Specific year",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get revenue for a specific month with convenient filters. Requires OWNER role.\n\n**Filter Options:**\n- No params (default): Current month\n- ?filter=current: Current month\n- ?filter=last: Last month\n- ?month=3: Specific month in current year (March)\n- ?month=3&year=2026: Specific month and year (March 2026)\n\n**Returns:**\n- period: Month details (name, number, year, date range)\n- summary: totalRevenue, totalAppointments, uniqueCustomers, avgRevenuePerDay, avgRevenuePerAppointment\n- dailyBreakdown: Day-by-day revenue within the month\n- appointments: All completed appointments for the month\n\n**Examples:**\n- Current month: /api/revenue/monthly\n- Last month: /api/revenue/monthly?filter=last\n- January 2026: /api/revenue/monthly?month=1&year=2026"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Daily Revenue",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/revenue/daily?days=30",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"revenue",
+								"daily"
+							],
+							"query": [
+								{
+									"key": "days",
+									"value": "30",
+									"description": "Get last N days (1-365)"
+								},
+								{
+									"key": "startDate",
+									"value": "2026-01-01",
+									"description": "Start date for custom range (ISO8601)",
+									"disabled": true
+								},
+								{
+									"key": "endDate",
+									"value": "2026-01-31",
+									"description": "End date for custom range (ISO8601)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get day-by-day revenue breakdown. Requires OWNER role.\n\nQuery Parameters (choose one):\n- days: Get last N days (e.g., 7, 30, 90) - defaults to 30\n- startDate & endDate: Custom date range (ISO8601 format)\n\nReturns:\n- Summary: totalRevenue, totalAppointments, avgDailyRevenue, daysWithRevenue\n- Data: Array of daily revenue with date, revenue, and appointmentCount\n\nExamples:\n- Last 7 days: ?days=7\n- Last 30 days: ?days=30 (default)\n- Custom range: ?startDate=2026-01-01&endDate=2026-01-31"
+					},
+					"response": []
+				},
+				{
 					"name": "Get Staff Revenue",
 					"request": {
 						"auth": {
@@ -1804,7 +1902,7 @@
 					"response": []
 				}
 			],
-			"description": "Revenue reporting and analytics endpoints. All revenue endpoints require OWNER role and only count COMPLETED appointments.\n\nAccess Control:\n- GET /api/revenue/metrics - OWNER only ✅\n- GET /api/revenue/by-staff - OWNER only ✅\n- GET /api/revenue/by-category - OWNER only ✅\n- GET /api/revenue/trends - OWNER only ✅\n- GET /api/revenue/staff/:staffId - OWNER only ✅\n\nRevenue Calculation:\n- Only COMPLETED appointments are counted in revenue\n- Revenue is based on the appointment price (sum of all services)\n- All endpoints support filtering by year or custom date range\n\nCommon Query Parameters:\n- year: Integer (2000-2100) - Filter by specific year\n- startDate: ISO8601 date - Start of custom date range\n- endDate: ISO8601 date - End of custom date range\n\nIf no date filter is provided, endpoints default to the current year."
+			"description": "Revenue reporting and analytics endpoints. All revenue endpoints require OWNER role and only count COMPLETED appointments.\n\nAccess Control:\n- GET /api/revenue/metrics - OWNER only ✅\n- GET /api/revenue/by-staff - OWNER only ✅\n- GET /api/revenue/by-category - OWNER only ✅\n- GET /api/revenue/trends - OWNER only ✅ (Yearly: 12 months)\n- GET /api/revenue/monthly - OWNER only ✅ (Single month with filters)\n- GET /api/revenue/daily - OWNER only ✅ (Daily breakdown)\n- GET /api/revenue/staff/:staffId - OWNER only ✅\n\nRevenue Calculation:\n- Only COMPLETED appointments are counted in revenue\n- Revenue is based on the appointment price (sum of all services)\n\nTime-Based Reports:\n\n1. **Monthly Revenue** (RECOMMENDED for dashboards)\n   GET /api/revenue/monthly\n   - Default: Current month\n   - ?filter=current: Current month\n   - ?filter=last: Last month\n   - ?month=1&year=2026: Specific month (January 2026)\n   Returns: summary + daily breakdown + all appointments\n\n2. **Yearly Trends** (12 months overview)\n   GET /api/revenue/trends?year=2026\n   Returns all 12 months for comparison\n  \n3. **Daily Breakdown**\n   GET /api/revenue/daily?days=30\n   Returns day-by-day for last N days or custom range\n\nCommon Query Parameters:\n- filter: 'current' or 'last' - Quick month filters\n- month: Integer (1-12) - Specific month\n- year: Integer (2000-2100) - Specific year\n- days: Integer (1-365) - Last N days\n- startDate/endDate: ISO8601 dates - Custom range"
 		},
 		{
 			"name": "Services",

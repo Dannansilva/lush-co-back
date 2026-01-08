@@ -258,6 +258,198 @@ exports.getRevenueTrends = async (req, res, next) => {
   }
 };
 
+// @desc    Get monthly revenue with filters (current month, last month, specific month)
+// @route   GET /api/revenue/monthly
+// @access  Private (OWNER only)
+exports.getMonthlyRevenue = async (req, res, next) => {
+  try {
+    const { month, year, filter } = req.query;
+
+    let startDate, endDate;
+    const now = new Date();
+
+    // Handle filter parameter (current, last, or custom)
+    if (filter === 'current' || (!filter && !month && !year)) {
+      // Current month (default)
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    } else if (filter === 'last') {
+      // Last month
+      startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      endDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+    } else if (month && year) {
+      // Specific month and year
+      const targetMonth = parseInt(month) - 1; // Month is 0-indexed
+      const targetYear = parseInt(year);
+      startDate = new Date(targetYear, targetMonth, 1);
+      endDate = new Date(targetYear, targetMonth + 1, 0, 23, 59, 59, 999);
+    } else if (month) {
+      // Specific month in current year
+      const targetMonth = parseInt(month) - 1;
+      startDate = new Date(now.getFullYear(), targetMonth, 1);
+      endDate = new Date(now.getFullYear(), targetMonth + 1, 0, 23, 59, 59, 999);
+    } else {
+      // Default to current month
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    }
+
+    // Get completed appointments for the month
+    const appointments = await Appointment.find({
+      appointmentDate: { $gte: startDate, $lte: endDate },
+      status: 'COMPLETED'
+    })
+      .populate('customer', 'name phoneNumber')
+      .populate('staff', 'name')
+      .populate('services', 'name category price')
+      .sort({ appointmentDate: 1 });
+
+    // Calculate total revenue
+    const totalRevenue = appointments.reduce((sum, apt) => sum + apt.price, 0);
+
+    // Count unique customers
+    const uniqueCustomers = new Set(
+      appointments.map(apt => apt.customer._id.toString())
+    );
+
+    // Group by day for daily breakdown
+    const dailyBreakdown = {};
+    appointments.forEach(apt => {
+      const day = new Date(apt.appointmentDate).getDate();
+      if (!dailyBreakdown[day]) {
+        dailyBreakdown[day] = {
+          day,
+          date: new Date(apt.appointmentDate).toISOString().split('T')[0],
+          revenue: 0,
+          appointmentCount: 0
+        };
+      }
+      dailyBreakdown[day].revenue += apt.price;
+      dailyBreakdown[day].appointmentCount += 1;
+    });
+
+    // Convert to array and sort
+    const dailyData = Object.values(dailyBreakdown).sort((a, b) => a.day - b.day);
+
+    // Month names
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+
+    res.status(200).json({
+      success: true,
+      period: {
+        month: monthNames[startDate.getMonth()],
+        monthNumber: startDate.getMonth() + 1,
+        year: startDate.getFullYear(),
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0]
+      },
+      summary: {
+        totalRevenue,
+        totalAppointments: appointments.length,
+        uniqueCustomers: uniqueCustomers.size,
+        avgRevenuePerDay: dailyData.length > 0 ? totalRevenue / dailyData.length : 0,
+        avgRevenuePerAppointment: appointments.length > 0 ? totalRevenue / appointments.length : 0
+      },
+      dailyBreakdown: dailyData,
+      appointments
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get daily revenue breakdown
+// @route   GET /api/revenue/daily
+// @access  Private (OWNER only)
+exports.getDailyRevenue = async (req, res, next) => {
+  try {
+    const { startDate, endDate, days } = req.query;
+
+    // Build date filter
+    let dateFilter = {};
+    if (startDate && endDate) {
+      dateFilter = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      };
+    } else if (days) {
+      // Get last N days (e.g., last 7 days, last 30 days)
+      const daysAgo = parseInt(days);
+      const end = new Date();
+      const start = new Date();
+      start.setDate(start.getDate() - daysAgo);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+      dateFilter = { $gte: start, $lte: end };
+    } else {
+      // Default to last 30 days
+      const end = new Date();
+      const start = new Date();
+      start.setDate(start.getDate() - 30);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+      dateFilter = { $gte: start, $lte: end };
+    }
+
+    // Aggregate revenue by day
+    const dailyRevenue = await Appointment.aggregate([
+      {
+        $match: {
+          appointmentDate: dateFilter,
+          status: 'COMPLETED'
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$appointmentDate' },
+            month: { $month: '$appointmentDate' },
+            day: { $dayOfMonth: '$appointmentDate' }
+          },
+          totalRevenue: { $sum: '$price' },
+          appointmentCount: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 }
+      },
+      {
+        $project: {
+          _id: 0,
+          date: {
+            $dateFromParts: {
+              year: '$_id.year',
+              month: '$_id.month',
+              day: '$_id.day'
+            }
+          },
+          revenue: '$totalRevenue',
+          appointmentCount: '$appointmentCount'
+        }
+      }
+    ]);
+
+    // Calculate summary statistics
+    const totalRevenue = dailyRevenue.reduce((sum, day) => sum + day.revenue, 0);
+    const totalAppointments = dailyRevenue.reduce((sum, day) => sum + day.appointmentCount, 0);
+    const avgDailyRevenue = dailyRevenue.length > 0 ? totalRevenue / dailyRevenue.length : 0;
+
+    res.status(200).json({
+      success: true,
+      summary: {
+        totalRevenue,
+        totalAppointments,
+        avgDailyRevenue,
+        daysWithRevenue: dailyRevenue.length
+      },
+      data: dailyRevenue
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Get revenue for a specific staff member
 // @route   GET /api/revenue/staff/:staffId
 // @access  Private (OWNER only)
