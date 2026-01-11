@@ -258,6 +258,108 @@ exports.getRevenueTrends = async (req, res, next) => {
   }
 };
 
+// @desc    Get monthly revenue (current or specific month)
+// @route   GET /api/revenue/monthly
+// @access  Private (OWNER only)
+exports.getMonthlyRevenue = async (req, res, next) => {
+  try {
+    const { filter, month, year } = req.query;
+
+    let targetMonth, targetYear;
+    const now = new Date();
+
+    // Determine target month and year
+    if (filter === 'current') {
+      targetMonth = now.getMonth() + 1; // 1-12
+      targetYear = now.getFullYear();
+    } else if (filter === 'last') {
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1);
+      targetMonth = lastMonth.getMonth() + 1;
+      targetYear = lastMonth.getFullYear();
+    } else {
+      targetMonth = month ? parseInt(month) : now.getMonth() + 1;
+      targetYear = year ? parseInt(year) : now.getFullYear();
+    }
+
+    // Build date range for the specific month
+    const monthStart = new Date(targetYear, targetMonth - 1, 1);
+    const monthEnd = new Date(targetYear, targetMonth, 0, 23, 59, 59, 999);
+
+    // Get all completed appointments for the month
+    const completedAppointments = await Appointment.find({
+      appointmentDate: { $gte: monthStart, $lte: monthEnd },
+      status: 'COMPLETED'
+    }).populate('services', 'category price name')
+      .populate('staff', 'name phoneNumber');
+
+    // Calculate total revenue
+    const totalRevenue = completedAppointments.reduce((sum, apt) => sum + apt.price, 0);
+
+    // Calculate revenue by staff
+    const revenueByStaff = {};
+    completedAppointments.forEach(appointment => {
+      const staffId = appointment.staff._id.toString();
+      if (!revenueByStaff[staffId]) {
+        revenueByStaff[staffId] = {
+          staffId,
+          staffName: appointment.staff.name,
+          staffPhoneNumber: appointment.staff.phoneNumber,
+          totalRevenue: 0,
+          appointmentCount: 0
+        };
+      }
+      revenueByStaff[staffId].totalRevenue += appointment.price;
+      revenueByStaff[staffId].appointmentCount += 1;
+    });
+
+    // Calculate revenue by category
+    const revenueByCategory = {};
+    completedAppointments.forEach(appointment => {
+      appointment.services.forEach(service => {
+        const category = service.category;
+        if (!revenueByCategory[category]) {
+          revenueByCategory[category] = {
+            category,
+            totalRevenue: 0,
+            serviceCount: 0
+          };
+        }
+        revenueByCategory[category].totalRevenue += service.price;
+        revenueByCategory[category].serviceCount += 1;
+      });
+    });
+
+    // Convert objects to arrays and sort
+    const staffArray = Object.values(revenueByStaff).sort(
+      (a, b) => b.totalRevenue - a.totalRevenue
+    );
+    const categoryArray = Object.values(revenueByCategory).sort(
+      (a, b) => b.totalRevenue - a.totalRevenue
+    );
+
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+
+    res.status(200).json({
+      success: true,
+      data: {
+        month: targetMonth,
+        monthName: monthNames[targetMonth - 1],
+        year: targetYear,
+        totalRevenue,
+        totalAppointments: completedAppointments.length,
+        avgTransaction: completedAppointments.length > 0
+          ? totalRevenue / completedAppointments.length
+          : 0,
+        revenueByStaff: staffArray,
+        revenueByCategory: categoryArray
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Get revenue for a specific staff member
 // @route   GET /api/revenue/staff/:staffId
 // @access  Private (OWNER only)
