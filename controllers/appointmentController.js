@@ -83,7 +83,7 @@ exports.createAppointment = async (req, res, next) => {
   }
 
   try {
-    const { customerId, staffId, serviceIds, appointmentDate, notes, status } = req.body;
+    const { customerId, staffId, serviceIds, appointmentDate, notes, status, price } = req.body;
 
     // Verify customer exists
     const customer = await Customer.findById(customerId);
@@ -112,7 +112,8 @@ exports.createAppointment = async (req, res, next) => {
 
     // Calculate total duration and price
     const totalDuration = services.reduce((sum, service) => sum + service.duration, 0);
-    const totalPrice = services.reduce((sum, service) => sum + service.price, 0);
+    // Use provided price or calculate from services
+    const finalPrice = price !== undefined ? price : services.reduce((sum, service) => sum + service.price, 0);
 
     // Create appointment with total duration and price
     const appointment = await Appointment.create({
@@ -121,7 +122,7 @@ exports.createAppointment = async (req, res, next) => {
       services: serviceIds,
       appointmentDate,
       duration: totalDuration,
-      price: totalPrice,
+      price: finalPrice,
       status: status || 'SCHEDULED',
       notes: notes && notes.trim() ? notes : undefined,
       createdBy: req.user._id
@@ -162,7 +163,7 @@ exports.updateAppointment = async (req, res, next) => {
       return next(new ErrorResponse('Appointment not found', 404));
     }
 
-    const { customerId, staffId, serviceIds, appointmentDate, notes, status } = req.body;
+    const { customerId, staffId, serviceIds, appointmentDate, notes, status, price } = req.body;
 
     // Build update data
     const updateData = {};
@@ -201,11 +202,19 @@ exports.updateAppointment = async (req, res, next) => {
 
       // Calculate total duration and price
       const totalDuration = services.reduce((sum, service) => sum + service.duration, 0);
-      const totalPrice = services.reduce((sum, service) => sum + service.price, 0);
+      const calculatedPrice = services.reduce((sum, service) => sum + service.price, 0);
 
       updateData.services = serviceIds;
       updateData.duration = totalDuration;
-      updateData.price = totalPrice;
+      // Only overwrite price with calculated if custom price is NOT provided in this update
+      if (price === undefined) {
+        updateData.price = calculatedPrice;
+      }
+    }
+
+    // If price is explicitly provided, it always wins
+    if (price !== undefined) {
+      updateData.price = price;
     }
 
     // Update other fields

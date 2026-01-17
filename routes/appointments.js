@@ -63,7 +63,12 @@ router.post(
       .withMessage('Invalid status'),
     body('notes')
       .optional({ nullable: true, checkFalsy: true })
-      .trim()
+      .trim(),
+    body('price')
+      .optional()
+      .isNumeric()
+      .withMessage('Price must be a number')
+      .toFloat()
   ],
   createAppointment
 );
@@ -104,7 +109,12 @@ router.put(
       .withMessage('Invalid status'),
     body('notes')
       .optional({ nullable: true, checkFalsy: true })
-      .trim()
+      .trim(),
+    body('price')
+      .optional()
+      .isNumeric()
+      .withMessage('Price must be a number')
+      .toFloat()
   ],
   updateAppointment
 );
