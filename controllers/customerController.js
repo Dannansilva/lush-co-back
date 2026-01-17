@@ -2,17 +2,36 @@ const { validationResult } = require('express-validator');
 const ErrorResponse = require('../utils/ErrorResponse');
 const Customer = require('../models/Customer');
 
-// @desc    Get all customers
-// @route   GET /api/customers
+// @desc    Get all customers (paginated)
+// @route   GET /api/customers?page=1&limit=20
 // @access  Private (OWNER and RECEPTIONIST)
 exports.getAllCustomers = async (req, res, next) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination metadata
+    const totalCount = await Customer.countDocuments();
+
     const customers = await Customer.find()
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalPages = Math.ceil(totalCount / limit);
 
     res.status(200).json({
       success: true,
       count: customers.length,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      },
       data: customers
     });
   } catch (error) {
@@ -166,8 +185,8 @@ exports.deleteCustomer = async (req, res, next) => {
   }
 };
 
-// @desc    Search customers
-// @route   GET /api/customers/search?query=
+// @desc    Search customers (paginated)
+// @route   GET /api/customers/search?query=&page=1&limit=20
 // @access  Private (OWNER and RECEPTIONIST)
 exports.searchCustomers = async (req, res, next) => {
   const errors = validationResult(req);
@@ -180,18 +199,39 @@ exports.searchCustomers = async (req, res, next) => {
 
   try {
     const { query } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
 
-    const customers = await Customer.find({
+    const searchFilter = {
       $or: [
         { name: { $regex: query, $options: 'i' } },
         { email: { $regex: query, $options: 'i' } },
         { phoneNumber: { $regex: query, $options: 'i' } }
       ]
-    }).sort({ createdAt: -1 });
+    };
+
+    // Get total count for pagination metadata
+    const totalCount = await Customer.countDocuments(searchFilter);
+
+    const customers = await Customer.find(searchFilter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalPages = Math.ceil(totalCount / limit);
 
     res.status(200).json({
       success: true,
       count: customers.length,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      },
       data: customers
     });
   } catch (error) {

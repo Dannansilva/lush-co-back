@@ -5,21 +5,40 @@ const Customer = require('../models/Customer');
 const StaffMember = require('../models/StaffMember');
 const Service = require('../models/Service');
 
-// @desc    Get all appointments
-// @route   GET /api/appointments
+// @desc    Get all appointments (paginated)
+// @route   GET /api/appointments?page=1&limit=20
 // @access  Private (OWNER and RECEPTIONIST)
 exports.getAllAppointments = async (req, res, next) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination metadata
+    const totalCount = await Appointment.countDocuments();
+
     const appointments = await Appointment.find()
       .populate('customer', 'name phoneNumber email')
       .populate('staff', 'name phoneNumber')
       .populate('services', 'name duration price category')
       .populate('createdBy', 'name email')
-      .sort({ appointmentDate: 1 });
+      .sort({ appointmentDate: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalPages = Math.ceil(totalCount / limit);
 
     res.status(200).json({
       success: true,
       count: appointments.length,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      },
       data: appointments
     });
   } catch (error) {
@@ -242,29 +261,50 @@ exports.cancelAppointment = async (req, res, next) => {
   }
 };
 
-// @desc    Get today's appointments
-// @route   GET /api/appointments/today
+// @desc    Get today's appointments (paginated)
+// @route   GET /api/appointments/today?page=1&limit=20
 // @access  Private (OWNER and RECEPTIONIST)
 exports.getTodayAppointments = async (req, res, next) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
 
-    const appointments = await Appointment.find({
+    const filter = {
       appointmentDate: { $gte: startOfDay, $lte: endOfDay },
       status: { $ne: 'CANCELLED' }
-    })
+    };
+
+    // Get total count for pagination metadata
+    const totalCount = await Appointment.countDocuments(filter);
+
+    const appointments = await Appointment.find(filter)
       .populate('customer', 'name phoneNumber email')
       .populate('staff', 'name phoneNumber')
       .populate('services', 'name duration price category')
       .populate('createdBy', 'name email')
-      .sort({ appointmentDate: 1 });
+      .sort({ appointmentDate: 1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalPages = Math.ceil(totalCount / limit);
 
     res.status(200).json({
       success: true,
       count: appointments.length,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      },
       data: appointments
     });
   } catch (error) {
