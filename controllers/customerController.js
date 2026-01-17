@@ -8,7 +8,7 @@ const Customer = require('../models/Customer');
 exports.getAllCustomers = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
+    const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
     // Get total count for pagination metadata
@@ -200,7 +200,7 @@ exports.searchCustomers = async (req, res, next) => {
   try {
     const { query } = req.query;
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
+    const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
     const searchFilter = {

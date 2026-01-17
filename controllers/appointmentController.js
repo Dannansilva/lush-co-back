@@ -11,7 +11,7 @@ const Service = require('../models/Service');
 exports.getAllAppointments = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
+    const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
     // Get total count for pagination metadata
@@ -267,7 +267,7 @@ exports.cancelAppointment = async (req, res, next) => {
 exports.getTodayAppointments = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
+    const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
     const startOfDay = new Date();
