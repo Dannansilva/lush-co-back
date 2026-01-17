@@ -42,9 +42,11 @@ exports.getRevenueMetrics = async (req, res, next) => {
       ? totalRevenue / completedAppointments.length
       : 0;
 
-    // Count unique customers
+    // Count unique customers (filter out appointments with null customers)
     const uniqueCustomers = new Set(
-      completedAppointments.map(apt => apt.customer.toString())
+      completedAppointments
+        .filter(apt => apt.customer)
+        .map(apt => apt.customer.toString())
     );
 
     res.status(200).json({
@@ -174,7 +176,12 @@ exports.getRevenueByCategory = async (req, res, next) => {
     const revenueByCategory = {};
 
     completedAppointments.forEach(appointment => {
+      if (!appointment.services) return;
+
       appointment.services.forEach(service => {
+        // Skip if service is null (deleted service)
+        if (!service) return;
+
         const category = service.category;
         if (!revenueByCategory[category]) {
           revenueByCategory[category] = {
@@ -298,6 +305,9 @@ exports.getMonthlyRevenue = async (req, res, next) => {
     // Calculate revenue by staff
     const revenueByStaff = {};
     completedAppointments.forEach(appointment => {
+      // Skip if staff is null (deleted staff member)
+      if (!appointment.staff) return;
+
       const staffId = appointment.staff._id.toString();
       if (!revenueByStaff[staffId]) {
         revenueByStaff[staffId] = {
@@ -315,7 +325,12 @@ exports.getMonthlyRevenue = async (req, res, next) => {
     // Calculate revenue by category
     const revenueByCategory = {};
     completedAppointments.forEach(appointment => {
+      if (!appointment.services) return;
+
       appointment.services.forEach(service => {
+        // Skip if service is null (deleted service)
+        if (!service) return;
+
         const category = service.category;
         if (!revenueByCategory[category]) {
           revenueByCategory[category] = {
