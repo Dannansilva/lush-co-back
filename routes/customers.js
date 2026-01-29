@@ -62,8 +62,8 @@ router.post(
       .isLength({ min: 2, max: 100 })
       .withMessage('Name must be between 2 and 100 characters'),
     body('email')
-      .optional({ nullable: true, checkFalsy: true })
       .trim()
+      .optional({ nullable: true, checkFalsy: true })
       .isEmail()
       .withMessage('Please provide a valid email')
       .normalizeEmail(),
@@ -74,11 +74,11 @@ router.post(
       .matches(/^[+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/)
       .withMessage('Please provide a valid phone number'),
     body('address')
-      .optional()
-      .trim(),
-    body('notes')
-      .optional()
       .trim()
+      .optional(),
+    body('notes')
+      .trim()
+      .optional()
   ],
   createCustomer
 );
@@ -94,19 +94,19 @@ router.put(
       .isMongoId()
       .withMessage('Invalid customer ID'),
     body('name')
-      .optional()
       .trim()
+      .optional()
       .isLength({ min: 2, max: 100 })
       .withMessage('Name must be between 2 and 100 characters'),
     body('email')
-      .optional({ nullable: true, checkFalsy: true })
       .trim()
+      .optional({ nullable: true, checkFalsy: true })
       .isEmail()
       .withMessage('Please provide a valid email')
       .normalizeEmail(),
     body('phoneNumber')
-      .optional()
       .trim()
+      .optional()
       .matches(/^[+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/)
       .withMessage('Please provide a valid phone number')
   ],
