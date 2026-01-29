@@ -32,9 +32,9 @@ router.get('/', getAllServices);
 // @access  Public (or Private based on business needs)
 router.get('/:id', getService);
 
-// Routes below require authentication and OWNER authorization
+// Routes below require authentication and OWNER/RECEPTIONIST authorization
 router.use(protect);
-router.use(authorize('OWNER'));
+router.use(authorize('OWNER', 'RECEPTIONIST'));
 
 // @route   POST /api/services
 // @desc    Create new service

@@ -13,29 +13,7 @@ const seedStaff = async () => {
     await StaffMember.deleteMany({});
     console.log('Cleared existing staff members');
 
-    // Create mock staff members
-    const mockStaff = [
-      {
-        name: 'Sarah Johnson',
-        phoneNumber: '+1234567890'
-      },
-      {
-        name: 'Michael Chen',
-        phoneNumber: '+1234567891'
-      },
-      {
-        name: 'Emily Rodriguez',
-        phoneNumber: '+1234567892'
-      },
-      {
-        name: 'David Williams',
-        phoneNumber: '+1234567893'
-      },
-      {
-        name: 'Jessica Martinez',
-        phoneNumber: '+1234567894'
-      }
-    ];
+    
 
     // Insert staff members
     const staff = await StaffMember.insertMany(mockStaff);
