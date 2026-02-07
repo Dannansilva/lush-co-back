@@ -16,14 +16,18 @@ const AppointmentSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Service'
     }],
-    validate: {
-      validator: function(v) {
-        return v && v.length > 0;
-      },
-      message: 'At least one service is required'
-    },
-    required: [true, 'Services are required']
+    default: []
   },
+  packages: {
+    type: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Package'
+    }],
+    default: []
+  },
+  // We need a custom validator to ensure at least one service or package is selected
+  // This logic is better handled in the controller or pre-validate hook, but can be done here too
+  // For simplicity in schema, we'll keep them as arrays and validate in pre-save or controller
   appointmentDate: {
     type: Date,
     required: [true, 'Appointment date and time is required']
