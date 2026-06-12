@@ -18,8 +18,14 @@ var servicesRouter = require('./routes/services');
 var revenueRouter = require('./routes/revenue');
 var packagesRouter = require('./routes/packages');
 var attendanceRouter = require('./routes/attendance');
+var notificationRouter = require('./routes/notification');
 
 var app = express();
+
+// Start background attendance scheduler
+const cronScheduler = require('./utils/cronScheduler');
+cronScheduler.startScheduler();
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -49,6 +55,7 @@ app.use('/api/services', servicesRouter);
 app.use('/api/revenue', revenueRouter);
 app.use('/api/packages', packagesRouter);
 app.use('/api/attendance', attendanceRouter);
+app.use('/api/notifications', notificationRouter);
 
 // Import custom error handler
 const errorHandler = require('./middleware/errorHandler');
